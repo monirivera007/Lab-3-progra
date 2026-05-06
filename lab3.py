@@ -260,57 +260,14 @@ if opcion == "Videojuegos":
 
 
 elif opcion == "Netflix":
-        netflix= pd.read_csv("netflix_titles.csv")
-        def tipo_audiencia(x):
-            if x in ["G", "TV-Y", "TV-G", "TV-Y7", "TV-Y7-FV"]:
-                return "Niños"
-            elif x in ["PG", "TV-PG"]:
-                return "Adolescentes"
-            elif x in ["PG-13", "TV-14"]:
-                return "Adultos Jóvenes"
-            else:
-                return "Adultos"
-
-        netflix["TipoAudiencia"] = netflix["rating"].apply(tipo_audiencia)
-
-        if opcion == "Inicio":
-            st.write(netflix.head(6))
-            st.write(netflix.shape)
-            estadisticas = list(netflix.select_dtypes(include="number").columns)
-            seleccionestadisticas = st.selectbox(
-                    "Estadisticas ",
-                    [None] + estadisticas
-                )
-            if seleccionestadisticas:
-                st.write(netflix[seleccionestadisticas].describe())
-
-            with st.expander("Categorias"):
-                for columnas in netflix.columns:
-                    st.write(columnas)
-
-        elif opcion == "Filtros":
-            seleccion_filtrado = st.selectbox(
-                "Filtrar por...",
-                ["Duracion", "Ultima actualizacion"]
-            )
-
-            duracion_num = pd.to_numeric(
-                netflix["duration"].str.replace(" min", ""),
-                errors="coerce"
-                )       
-            if seleccion_filtrado == "Duracion":
-                filtro_duracion =st.number_input("Duracion mayor a ")
-                st.write(netflix[netflix["duration"] > filtro_duracion])
-
-            elif seleccion_filtrado == "Ultima actualizacion":
-                filtro_actualizaion =st.number_input("Ultima actualizacion antes del año ")
-                st.write(netflix[netflix["date_added"] < filtro_actualizaion])
-
-            
-            
-        
-
-
+    st.title(" Análisis Netflix")
+    st.balloons()  
     
-
+    netflix = pd.read_csv("netflix_titles.csv")
     
+    st.success(f"Datos cargados: {netflix.shape[0]} títulos")
+    st.subheader("Primeras filas")
+    st.dataframe(netflix.head(6))
+    
+    st.subheader("Columnas")
+    st.write(netflix.columns.tolist())
