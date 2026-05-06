@@ -259,15 +259,120 @@ if opcion == "Videojuegos":
 
 
 
+
 elif opcion == "Netflix":
-    st.title(" Análisis Netflix")
-      
+    st.title("Análisis Netflix")
     
+  
     netflix = pd.read_csv("netflix_titles.csv")
     
-    st.success(f"Datos cargados: {netflix.shape[0]} títulos")
-    st.subheader("Primeras filas")
+    
+    def tipo_audiencia(rating):
+        if rating in ["G", "TV-Y", "TV-G", "TV-Y7", "TV-Y7-FV"]:
+            return "Niños"
+        elif rating in ["PG", "TV-PG"]:
+            return "Adolescentes"
+        elif rating in ["PG-13", "TV-14"]:
+            return "Adultos Jóvenes"
+        elif rating in ["R", "TV-MA", "NC-17"]:
+            return "Adultos"
+        else:
+            return "No clasificado"
+    
+    netflix["TipoAudiencia"] = netflix["rating"].apply(tipo_audiencia)
+    
+    # Vista general
+    col1, col2 = st.columns(2)
+    col1.metric("Total títulos", netflix.shape[0])
+    col2.metric("Columnas", len(netflix.columns))
+    
+    st.subheader("Primeras 6 filas")
     st.dataframe(netflix.head(6))
     
-    st.subheader("Columnas")
-    st.write(netflix.columns.tolist())
+    
+    st.subheader("Filtros")
+    
+    col_f1, col_f2 = st.columns(2)
+    
+    with col_f1:
+        
+        st.markdown("**Duración > minutos**")
+        duracion_min = st.number_input("Películas con duración mayor a:", 
+                                     min_value=0, value=60, step=10)
+        
+       
+        def extraer_minutos(duracion):
+            if pd.isna(duracion):
+                return 0
+            dur_str = str(duracion)
+            if "min" in dur_str:
+                try:
+                    return int(dur_str.split(" ")[0])
+                except:
+                    return 0
+            return 0
+        
+        netflix["duracion_min"] = netflix["duration"].apply(extraer_minutos)
+        
+        
+        peliculas_largas = netflix[
+            (netflix["type"] == "Movie") & 
+            (netflix["duracion_min"] > duracion_min)
+        ]
+        
+        if not peliculas_largas.empty:
+            st.success(f" {len(peliculas_largas)} películas encontradas")
+            st.dataframe(peliculas_largas[["title", "duration", "duracion_min", "TipoAudiencia"]].head())
+        else:
+            st.warning("No se encontraron películas con esa duración")
+    
+    with col_f2:
+       
+        st.markdown("**Añadido antes del año**")
+        anio_maximo = st.number_input("Contenido añadido antes del:", 
+                                    min_value=2008, max_value=2026, value=2020)
+        
+        
+        def extraer_anio(fecha):
+            if pd.isna(fecha):
+                return 2000
+            fecha_str = str(fecha)
+            try:
+                
+                for i in range(len(fecha_str)-3, 0, -1):
+                    if fecha_str[i:i+4].isdigit():
+                        return int(fecha_str[i:i+4])
+                return 2000
+            except:
+                return 2000
+        
+        netflix["anio_agregado"] = netflix["date_added"].apply(extraer_anio)
+        contenido_viejo = netflix[netflix["anio_agregado"] < anio_maximo]
+        
+        if not contenido_viejo.empty:
+            st.success(f"{len(contenido_viejo)} contenidos encontrados")
+            st.dataframe(contenido_viejo[["title", "date_added", "anio_agregado", "TipoAudiencia"]].head())
+        else:
+            st.warning("No se encontró contenido de ese periodo")
+    
+   
+    st.subheader("👥 Distribución por Audiencia")
+    conteo_audiencia = netflix["TipoAudiencia"].value_counts()
+    st.bar_chart(conteo_audiencia)
+    
+   
+    # Tabla resumen SIN lambda
+st.subheader(" Resumen por Audiencia")
+resumen = netflix.groupby("TipoAudiencia").agg({
+    "title": "count"
+}).rename(columns={"title": "Total"})
+
+
+peliculas_por_audiencia = {}
+for audiencia in netflix["TipoAudiencia"].unique():
+    count_peliculas = len(netflix[(netflix["TipoAudiencia"] == audiencia) & (netflix["type"] == "Movie")])
+    peliculas_por_audiencia[audiencia] = count_peliculas  # ← "audiencia" en minúscula
+
+
+resumen["Películas"] = [peliculas_por_audiencia.get(audiencia, 0) for audiencia in resumen.index]
+st.dataframe(resumen)
