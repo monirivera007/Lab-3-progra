@@ -174,3 +174,85 @@ if opcion == "Gimnasio":
     st.write(correlacion2)
 
     gimnasio.to_csv("GymExerciseTracking_Actualizado.csv", index=False)
+
+videojuegos = pd.read_csv("steam_store_data_2024.csv")
+
+videojuegos["price"] = videojuegos["price"].str.replace("$", "", regex=False)
+
+videojuegos["price"] = pd.to_numeric(videojuegos["price"], errors="coerce")
+
+videojuegos = videojuegos.dropna(subset=["price"])
+
+videojuegos["salePercentage"] = videojuegos["salePercentage"].str.replace("%", "", regex=False)
+
+videojuegos["salePercentage"] = pd.to_numeric(videojuegos["salePercentage"], errors="coerce")
+
+videojuegos = videojuegos.dropna(subset=["salePercentage"])
+
+if opcion == "Videojuegos":
+
+    st.title("Análisis de Videojuegos")
+    
+    st.subheader("Dimensiones del dataset")
+    st.write(videojuegos.shape)
+
+    st.subheader("Columnas")
+    st.write(videojuegos.columns.tolist())
+
+    st.subheader("Primeras 6 filas")
+    st.dataframe(videojuegos.head(6))
+
+    st.subheader("Estadísticas")
+    st.write(videojuegos.describe())
+
+    st.subheader("Filtro por precio")
+
+    precio = st.number_input("Precio mayor a:", min_value=0.0)
+
+    filtro_precio = videojuegos[videojuegos["price"] > precio]
+
+    st.write(filtro_precio)
+
+    st.subheader("Filtro por descuento")
+
+    descuento = st.number_input("Descuento menor a:", min_value=0.0)
+
+    filtro_descuento = videojuegos[videojuegos["salePercentage"] < descuento]
+
+    st.write(filtro_descuento)
+
+    def gama_juego(x):
+        if x < 10:
+            return "Baja"
+        elif x <= 24:
+            return "Media"
+        else:
+            return "Alta"
+
+    videojuegos["GamaJuego"] = videojuegos["price"].apply(gama_juego)
+
+    st.subheader("Conteo por gama")
+
+    conteo = videojuegos["GamaJuego"].value_counts()
+
+    st.write(conteo)
+
+    st.bar_chart(conteo)
+
+    st.subheader("Análisis agrupado")
+
+    grupo = videojuegos.groupby("GamaJuego").agg({
+        "price": ["mean", "std"],
+        "salePercentage": "mean",
+    
+    })
+
+    st.write(grupo)
+
+    st.subheader("Calificación por gama")
+
+    reviews = videojuegos.groupby("GamaJuego")["allReviews"].value_counts()
+
+    st.write(reviews)
+
+    videojuegos.to_csv("steam_store_data_2024_Actualizado.csv", index=False)
