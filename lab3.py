@@ -261,7 +261,7 @@ if opcion == "Videojuegos":
 
 elif opcion == "Netflix":
     st.title(" Análisis Netflix")
-    st.balloons()  
+      
     
     netflix = pd.read_csv("netflix_titles.csv")
     
