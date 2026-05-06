@@ -259,7 +259,7 @@ if opcion == "Videojuegos":
 
 
 
-elif opcion == "netflix":
+elif opcion == "Netflix":
         netflix= pd.read_csv("netflix_titles.csv")
         def tipo_audiencia(x):
             if x in ["G", "TV-Y", "TV-G", "TV-Y7", "TV-Y7-FV"]:
