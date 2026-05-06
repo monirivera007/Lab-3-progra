@@ -273,7 +273,7 @@ elif opcion == "Netflix":
 
         netflix["TipoAudiencia"] = netflix["rating"].apply(tipo_audiencia)
 
-        if grupo == "Inicio":
+        if opcion == "Inicio":
             st.write(netflix.head(6))
             st.write(netflix.shape)
             estadisticas = list(netflix.select_dtypes(include="number").columns)
@@ -288,7 +288,7 @@ elif opcion == "Netflix":
                 for columnas in netflix.columns:
                     st.write(columnas)
 
-        elif grupo == "Filtros":
+        elif opcion == "Filtros":
             seleccion_filtrado = st.selectbox(
                 "Filtrar por...",
                 ["Duracion", "Ultima actualizacion"]
